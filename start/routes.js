@@ -14,15 +14,98 @@
 */
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
-const Route = use('Route')
-const Albums = use('App/Models/Album')
+const Route = use('Route');
+const Album = use('App/Models/Album');
+const Song = use('App/Models/Song');
+var fs = require('fs');
 
-Route.on('/').render('welcome')
+Route.on('/').render('welcome');
 
+
+//Retorna os Albums
 Route.get('albums', async() => {
 
-  const albums = await Albums.query().orderBy('id', "desc").fetch()
+    const albums = await Album.query().orderBy('id', "desc").fetch();
+    return albums;
 
-  return albums;
+});
 
+
+//Retorna o Album pelo ID juntamente com seus respectivos sons
+Route.get('albums/:id', async({ params }) => {
+
+    const album = await Album.query().with("songs").where('id', params.id).first();
+    return album;
+
+});
+
+
+//Cria um novo Album
+Route.post('albums', async({ request }) => {
+    const { name, artist } = request.all();
+    const newAlbum = new Album();
+    newAlbum.name = name;
+    newAlbum.artist = artist;
+    await newAlbum.save();
+
+    return newAlbum;
+});
+
+
+//Insere uma imagem no Album
+Route.put('/albums/:id/photo', async({ request, params }) => {
+
+    const album = await Album.find(params.id);
+    const image = request.file("album_image", {
+        types: ["image"],
+        size: "1mb"
+    });
+
+    await image.move("public/uploads", {
+        name: `album-${album.id}-${new Date().getTime()}.jpg`
+    });
+
+    const pathImage = `http://localhost:3333/uploads/${image.fileName}`;
+    album.image = pathImage;
+    await album.save();
+
+    return album;
+});
+
+
+//Deleta o Album pelo ID juntamente com seus respectivos sons
+Route.delete('albums/:id', async({ params }) => {
+
+    const album = await Album.find(params.id);
+
+    if (album.image != null) {
+        /*
+        Não implementei a lógica de deletar a imagem do Album porque
+        a mesma ficou verbosa demais, se tratando de armazenamento local, e como a API
+        é só para anaálise creio que não fosse necessário.
+        */
+        return album.delete();
+    }
+
+    return album.delete();
+
+});
+
+
+//Insere um Song no Album correspondente pelo ID
+Route.post('/albums/:id/song/add', async({ request, params }) => {
+    const song = new Song();
+
+    song.album_id = params.id;
+    song.name = request.input("name");
+
+    song.save();
+    return song;
+});
+
+
+//Deleta um Song pelo ID
+Route.delete('/songs/:id', async({ params }) => {
+    const song = await Song.find(params.id);
+    await song.delete();
 });
