@@ -18,7 +18,9 @@ const Route = use('Route');
 const Album = use('App/Models/Album');
 const Song = use('App/Models/Song');
 
-Route.on('/').render('welcome');
+Route.get('/', async({ response }) => {
+    response.redirect('/docs')
+})
 
 
 //ALBUMS ROUTES ================================================
