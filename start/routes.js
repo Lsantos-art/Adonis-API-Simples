@@ -17,10 +17,11 @@
 const Route = use('Route');
 const Album = use('App/Models/Album');
 const Song = use('App/Models/Song');
-var fs = require('fs');
 
 Route.on('/').render('welcome');
 
+
+//ALBUMS ROUTES ================================================
 
 //Retorna os Albums
 Route.get('albums', async() => {
@@ -52,8 +53,20 @@ Route.post('albums', async({ request }) => {
 });
 
 
+//Edita um album pelo ID
+Route.put('album/:id', async({ request, params }) => {
+    const { name, artist } = request.all();
+    const editedAlbum = await Album.find(params.id);
+    editedAlbum.name = name;
+    editedAlbum.artist = artist;
+    await editedAlbum.save();
+
+    return editedAlbum;
+})
+
+
 //Insere uma imagem no Album
-Route.put('/albums/:id/photo', async({ request, params }) => {
+Route.put('albums/:id/photo', async({ request, params }) => {
 
     const album = await Album.find(params.id);
     const image = request.file("album_image", {
@@ -92,6 +105,8 @@ Route.delete('albums/:id', async({ params }) => {
 });
 
 
+//SONGS ROUTES ================================================
+
 //Insere um Song no Album correspondente pelo ID
 Route.post('/albums/:id/song/add', async({ request, params }) => {
     const song = new Song();
@@ -102,6 +117,17 @@ Route.post('/albums/:id/song/add', async({ request, params }) => {
     song.save();
     return song;
 });
+
+
+//Edita um song pelo ID
+Route.put('song/:id', async({ request, params }) => {
+    const { name } = request.all();
+    const editedSong = await Song.find(params.id);
+    editedSong.name = name;
+    await editedSong.save();
+
+    return editedSong;
+})
 
 
 //Deleta um Song pelo ID
