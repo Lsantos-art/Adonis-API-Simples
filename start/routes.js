@@ -133,5 +133,11 @@ Route.put('song/:id', async({ request, params }) => {
 //Deleta um Song pelo ID
 Route.delete('/songs/:id', async({ params }) => {
     const song = await Song.find(params.id);
-    await song.delete();
+    return await song.delete();
 });
+
+
+
+//Api documentation
+
+Route.get('/api/docs', 'DocApiController.hello')
